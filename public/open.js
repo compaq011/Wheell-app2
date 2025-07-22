@@ -3,7 +3,8 @@ const openButton = document.getElementById('openButton');
 const winnerModal = document.getElementById('winnerModal');
 const winnerImage = document.getElementById('winnerImage');
 const rollSound = document.getElementById('rollSound');
-
+const image = `images/${item.image}`;
+// recoil.jpg ✅ ama Recoil.jpg ❌ (ya da tersi)
 const cases = [
   { name: 'Fracture', chance: 27 },
   { name: 'Revolution', chance: 0.05 },
