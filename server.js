@@ -33,4 +33,6 @@ res.status(200).send({ message: 'Kazanan kaydedildi.' });
 });
 });
 
+app.listen(PORT, () => {
 console.log(`Sunucu ${PORT} portunda çalışıyor`)
+});
