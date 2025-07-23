@@ -2,24 +2,22 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Wheel-app | Tek Kullanımlık Çark</title>
+  <title>CS2 Kasa Açılımı</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Wheel-app</h1>
-  <p>Tek kullanımlık çark</p>
-
   <div class="case-container">
-    <div class="scroll-area"></div>
+    <div class="scroll-area" id="scrollArea"></div>
     <div class="pointer"></div>
   </div>
 
-  <button id="openButton" disabled>Kasa Aç</button>
+  <button id="openButton">Kasayı Aç</button>
 
-  <div class="winner-modal">
-    <img src="" alt="Kazanan item" />
+  <div id="winnerModal" class="winner-modal">
+    <img id="winnerImage" src="" alt="Kazanan" />
   </div>
+
+  <audio id="rollSound" src="sounds/roll.mp3"></audio>
 
   <script src="open.js"></script>
 </body>
