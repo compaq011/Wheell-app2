@@ -1,38 +1,30 @@
-const express = require('express');
-const path = require('path');
-const fs = require('fs');
+const express = require("express");
+const path = require("path");
+const fs = require("fs");
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const validTokens = ['abc123'];
+const tokens = JSON.parse(fs.readFileSync("tokens.json", "utf8"));
 
-app.use(express.json());
+app.use(express.static(path.join(__dirname, "public")));
 
-app.use((req, res, next) => {
-const token = req.query.token;
-if (!token || !validTokens.includes(token)) {
-return res.status(403).send('Geçersiz veya eksik token.');
-}
-next();
-});
+app.get("/", (req, res) => {
+  const token = req.query.token;
+  if (!token || !tokens[token]) {
+    return res.status(403).send("Token geçersiz veya bağlantı süresi doldu.");
+  }
 
-app.use(express.static(path.join(__dirname, 'public')));
+  if (tokens[token] === true) {
+    return res.status(403).send("Token zaten kullanıldı.");
+  }
 
-app.post('/winner', (req, res) => {
-const winnerData = req.body;
-const filePath = path.join(__dirname, 'winners.json');
-fs.readFile(filePath, 'utf8', (err, data) => {
-let winners = [];
-if (!err && data) {
-winners = JSON.parse(data);
-}
-winners.push(winnerData);
-fs.writeFile(filePath, JSON.stringify(winners, null, 2), () => {
-res.status(200).send({ message: 'Kazanan kaydedildi.' });
-});
-});
+  tokens[token] = true;
+  fs.writeFileSync("tokens.json", JSON.stringify(tokens, null, 2));
+
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 app.listen(PORT, () => {
-console.log(`Sunucu ${PORT} portunda çalışıyor`)
+  console.log(`Sunucu çalışıyor: http://localhost:${PORT}`);
 });
