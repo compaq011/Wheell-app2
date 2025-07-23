@@ -1,69 +1,117 @@
-const cases = [
-  { name: "Recoil", image: "images/Recoil.jpg", chance: 60 },
-  { name: "Fracture", image: "images/Fracture.jpg", chance: 27 },
-  { name: "Kilowatt", image: "images/kilowatt.jpg", chance: 4 },
-  { name: "tickettohell", image: "images/tickettohell.jpg", chance: 3 },
-  { name: "gallery", image: "images/gallery.jpg", chance: 0.05 },
-  { name: "Revolution", image: "images/Revolution.jpg", chance: 0.05 },
-  { name: "Chroma2", image: "images/Chroma2.jpg", chance: 0 },
-  { name: "Glock18-vogue", image: "images/Glock18-vogue.jpg", chance: 0 },
-];
+document.addEventListener("DOMContentLoaded", () => {
+  const openButton = document.getElementById("openButton");
+  const scrollArea = document.querySelector(".scroll-area");
+  const modal = document.querySelector(".winner-modal");
+  const modalImg = modal.querySelector("img");
 
-const scrollArea = document.getElementById("scrollArea");
-const winnerModal = document.getElementById("winnerModal");
-const winnerImage = document.getElementById("winnerImage");
-const rollSound = document.getElementById("rollSound");
+  const items = [
+    { name: "recoil", img: "images/recoil.jpg", chance: 60 },
+    { name: "fracture", img: "images/fracture.jpg", chance: 27 },
+    { name: "revolution", img: "images/revolution.jpg", chance: 0.05 },
+    { name: "kilowatt", img: "images/kilowatt.jpg", chance: 4 },
+    { name: "tickettohell", img: "images/tickettohell.jpg", chance: 3 },
+    { name: "gallery", img: "images/gallery.jpg", chance: 0.05 },
+    { name: "chroma2", img: "images/chroma2.jpg", chance: 0 },
+    { name: "vogue", img: "images/vogue.jpg", chance: 0 },
+  ];
 
-const openButton = document.getElementById("openButton");
+  const audio = new Audio("sounds/open.mp3");
 
-function getWeightedRandomCase() {
-  const total = cases.reduce((acc, curr) => acc + curr.chance, 0);
-  let rand = Math.random() * total;
-  for (const c of cases) {
-    if (rand < c.chance) return c;
-    rand -= c.chance;
-  }
-  return cases[0];
-}
+  let allImagesLoaded = false;
 
-openButton.addEventListener("click", () => {
-  openButton.disabled = true;
-  scrollArea.innerHTML = "";
-
-  const winner = getWeightedRandomCase();
-
-  const allItems = [];
-  for (let i = 0; i < 50; i++) {
-    const randomCase = cases[Math.floor(Math.random() * cases.length)];
-    const img = document.createElement("img");
-    img.src = randomCase.image;
-    img.classList.add("item-img");
-    allItems.push(img);
-    scrollArea.appendChild(img);
+  function preloadImages(images, callback) {
+    let loaded = 0;
+    images.forEach(item => {
+      const img = new Image();
+      img.src = item.img;
+      img.onload = () => {
+        loaded++;
+        if (loaded === images.length) {
+          callback();
+        }
+      };
+      img.onerror = () => {
+        console.error("Resim yüklenemedi:", item.img);
+        loaded++;
+        if (loaded === images.length) {
+          callback();
+        }
+      };
+    });
   }
 
-  // Winner ortada olacak şekilde diz
-  const winningIndex = 24;
-  allItems[winningIndex].src = winner.image;
+  function pickWinner() {
+    const rand = Math.random() * 100;
+    let sum = 0;
+    for (let i = 0; i < items.length; i++) {
+      sum += items[i].chance;
+      if (rand <= sum) {
+        return items[i];
+      }
+    }
+    return items[0]; // fallback
+  }
 
-  const itemWidth = 110;
-  const totalWidth = itemWidth * 50;
-  const targetOffset = itemWidth * (winningIndex - 2);
+  function createScrollItems(targetItem) {
+    const fullList = [];
+    const scrollCount = 50; // toplam dönme item sayısı
+    for (let i = 0; i < scrollCount - 1; i++) {
+      const randomItem = items[Math.floor(Math.random() * items.length)];
+      fullList.push(randomItem);
+    }
+    fullList.push(targetItem);
+    return fullList;
+  }
 
-  // Ses
-  rollSound.currentTime = 0;
-  rollSound.play();
+  function startScrollAnimation(itemList, targetItem) {
+    scrollArea.innerHTML = "";
+    itemList.forEach(item => {
+      const img = document.createElement("img");
+      img.src = item.img;
+      img.className = "item-img";
+      scrollArea.appendChild(img);
+    });
 
-  scrollArea.style.transition = "transform 6s cubic-bezier(0.1, 0.1, 0.2, 1)";
-  scrollArea.style.transform = `translateX(-${targetOffset}px)`;
+    const totalItems = itemList.length;
+    const itemWidth = 104; // 100px + 2x margin (2px+2px)
+    const scrollDistance = itemWidth * totalItems - (itemWidth * 2);
 
-  setTimeout(() => {
-    winnerImage.src = winner.image;
-    winnerModal.style.display = "flex";
+    scrollArea.style.transition = "transform 6s cubic-bezier(0.1, 0.9, 0.3, 1)";
+    scrollArea.style.transform = `translateX(-${scrollDistance}px)`;
+
+    audio.currentTime = 0;
+    audio.play();
+
+    setTimeout(() => {
+      modal.style.display = "flex";
+      modalImg.src = targetItem.img;
+    }, 6000); // Scroll bitince modal göster
+  }
+
+  preloadImages(items, () => {
+    allImagesLoaded = true;
     openButton.disabled = false;
-  }, 6200);
-});
+  });
 
-winnerModal.addEventListener("click", () => {
-  winnerModal.style.display = "none";
+  openButton.addEventListener("click", () => {
+    if (!allImagesLoaded) return;
+
+    openButton.disabled = true;
+    modal.style.display = "none";
+
+    const winner = pickWinner();
+    const scrollList = createScrollItems(winner);
+
+    // animasyon başlat
+    startScrollAnimation(scrollList, winner);
+
+    setTimeout(() => {
+      openButton.disabled = false;
+    }, 7000); // Yeni deneme için süre
+  });
+
+  // Modal kapamak için tıklama
+  modal.addEventListener("click", () => {
+    modal.style.display = "none";
+  });
 });
